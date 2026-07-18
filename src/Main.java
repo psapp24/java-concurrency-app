@@ -1,38 +1,33 @@
 import consumer.Consumer;
+import model.Notification;
 import publisher.Publisher;
-import queue.NotificationQueue;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args)
+            throws InterruptedException {
 
-        NotificationQueue queue = new NotificationQueue(5);
+        BlockingQueue<Notification> queue =
+                new ArrayBlockingQueue<>(5);
 
-        Thread p1 = new Thread(new Publisher(queue, "Publisher-1"));
-        Thread p2 = new Thread(new Publisher(queue, "Publisher-2"));
-        Thread p3 = new Thread(new Publisher(queue, "Publisher-3"));
+        Thread publisher =
+                new Thread(
+                        new Publisher(queue,
+                                "Publisher"));
 
-        Thread c1 = new Thread(new Consumer(queue, "Consumer-1"));
-        Thread c2 = new Thread(new Consumer(queue, "Consumer-2"));
-        Thread c3 = new Thread(new Consumer(queue, "Consumer-3"));
+        Thread consumer =
+                new Thread(
+                        new Consumer(queue,
+                                "Consumer"));
 
-        c1.start();
-        c2.start();
-        c3.start();
+        consumer.start();
+        publisher.start();
 
-        p1.start();
-        p2.start();
-        p3.start();
-
-        p1.join();
-        p2.join();
-        p3.join();
-
-        Thread.sleep(5000);
-
-        c1.join();
-        c2.join();
-        c3.join();
+        publisher.join();
+        consumer.join();
 
         System.out.println("Application Finished");
     }

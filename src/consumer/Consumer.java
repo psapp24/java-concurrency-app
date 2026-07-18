@@ -1,14 +1,16 @@
 package consumer;
 
 import model.Notification;
-import queue.NotificationQueue;
+
+import java.util.concurrent.BlockingQueue;
 
 public class Consumer implements Runnable {
 
-    private final NotificationQueue queue;
+    private final BlockingQueue<Notification> queue;
     private final String consumerName;
 
-    public Consumer(NotificationQueue queue, String consumerName) {
+    public Consumer(BlockingQueue<Notification> queue,
+                    String consumerName) {
         this.queue = queue;
         this.consumerName = consumerName;
     }
@@ -16,27 +18,32 @@ public class Consumer implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
+        try {
 
-            Notification notification = queue.consume();
+            while (true) {
 
-            if (notification == Notification.POISON_PILL) {
+                Notification notification =
+                        queue.take();
 
-                System.out.println(
-                        Thread.currentThread().getName()
-                                + " received Poison Pill");
+                if (notification == Notification.POISON_PILL) {
 
-                break;
+                    System.out.println(
+                            consumerName
+                                    + " stopping...");
+
+                    break;
+                }
+
+                System.out.printf("[%s] Consumed %s%n",
+                        consumerName,
+                        notification);
+
+                Thread.sleep(800);
             }
 
-            System.out.println(
-                    Thread.currentThread().getName()
-                            + " processed "
-                            + notification);
-        }
+        } catch (InterruptedException e) {
 
-        System.out.println(
-                Thread.currentThread().getName()
-                        + " Finished");
+            Thread.currentThread().interrupt();
+        }
     }
 }

@@ -1,14 +1,16 @@
 package publisher;
 
 import model.Notification;
-import queue.NotificationQueue;
+
+import java.util.concurrent.BlockingQueue;
 
 public class Publisher implements Runnable {
 
-    private final NotificationQueue queue;
+    private final BlockingQueue<Notification> queue;
     private final String publisherName;
 
-    public Publisher(NotificationQueue queue, String publisherName) {
+    public Publisher(BlockingQueue<Notification> queue,
+                     String publisherName) {
         this.queue = queue;
         this.publisherName = publisherName;
     }
@@ -16,15 +18,29 @@ public class Publisher implements Runnable {
     @Override
     public void run() {
 
-        for (int i = 1; i <= 10; i++) {
+        try {
 
-            queue.publish(
-                    new Notification(i,
-                            publisherName + "-Message-" + i));
+            for (int i = 1; i <= 10; i++) {
+
+                Notification notification =
+                        new Notification(
+                                i,
+                                publisherName + "-Message-" + i);
+
+                queue.put(notification);
+
+                System.out.printf("[%s] Published %s%n",
+                        publisherName,
+                        notification);
+
+                Thread.sleep(500);
+            }
+
+            queue.put(Notification.POISON_PILL);
+
+        } catch (InterruptedException e) {
+
+            Thread.currentThread().interrupt();
         }
-
-        queue.publish(Notification.POISON_PILL);
-
-        System.out.println(publisherName + " Finished");
     }
 }

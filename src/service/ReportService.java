@@ -1,19 +1,27 @@
 package service;
 
 import model.Order;
+import subscriber.OrderSubscriber;
 
 import java.util.List;
+import java.util.concurrent.SubmissionPublisher;
 
 public class ReportService {
 
-    public double calculateSales(List<Order> orders) {
+    public void publishOrders(List<Order> orders) {
 
-        return orders.parallelStream()
-                .peek(order -> System.out.println(
-                        Thread.currentThread().getName()
-                                + " -> Order "
-                                + order.getId()))
-                .mapToDouble(Order::getAmount)
-                .sum();
+        SubmissionPublisher<Order> publisher =
+                new SubmissionPublisher<>();
+
+        publisher.subscribe(new OrderSubscriber());
+
+        for (Order order : orders) {
+
+            System.out.println("Publishing -> " + order);
+
+            publisher.submit(order);
+        }
+
+        publisher.close();
     }
 }

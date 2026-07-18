@@ -1,39 +1,85 @@
 package consumer;
 
-import client.ExternalApiClient;
-import model.NotificationRequest;
-import queue.NotificationQueue;
+import client.ExternalNotificationClient;
+import model.Customer;
+import model.Notification;
+import model.Template;
+import service.CustomerService;
+import service.TemplateService;
 
-public class NotificationConsumer extends Thread {
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 
-    private final NotificationQueue queue;
-    private final ExternalApiClient externalApiClient;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 
-    public NotificationConsumer(NotificationQueue queue,
-                                ExternalApiClient externalApiClient) {
+public class NotificationConsumer implements Runnable {
+
+    private final BlockingQueue<Notification> queue;
+
+    private final CustomerService customerService =
+            new CustomerService();
+
+    private final TemplateService templateService =
+            new TemplateService();
+
+    private final ExternalNotificationClient client =
+            new ExternalNotificationClient();
+
+    public NotificationConsumer(
+            BlockingQueue<Notification> queue) {
 
         this.queue = queue;
-        this.externalApiClient = externalApiClient;
     }
 
     @Override
     public void run() {
 
-        System.out.println(getName() + " -> Consumer Started");
+        while (true) {
 
-        NotificationRequest request = queue.get();
+            try {
 
-        if (request == null) {
-            System.out.println(getName() + " -> No Request Found");
-            return;
+                Notification notification = queue.take();
+
+                if (notification == Notification.POISON_PILL) {
+
+                    System.out.println("Consumer Stopped");
+                    break;
+                }
+
+                System.out.println(
+                        "\nConsumer received -> "
+                                + notification);
+
+                CompletableFuture<Customer> customerFuture =
+                        CompletableFuture.supplyAsync(
+                                () -> customerService.getCustomer(
+                                        notification.getCustomerId()));
+
+                CompletableFuture<Template> templateFuture =
+                        CompletableFuture.supplyAsync(
+                                templateService::getTemplate);
+
+                customerFuture
+                        .thenCombine(
+                                templateFuture,
+                                (customer, template) -> {
+
+                                    client.send(
+                                            customer,
+                                            template,
+                                            notification);
+
+                                    return null;
+                                })
+                        .join();
+
+            } catch (InterruptedException e) {
+
+                Thread.currentThread().interrupt();
+
+                break;
+            }
         }
-
-        System.out.println(getName()
-                + " -> Processing Request : "
-                + request.getId());
-
-        externalApiClient.send(request);
-
-        System.out.println(getName() + " -> Consumer Finished");
     }
 }

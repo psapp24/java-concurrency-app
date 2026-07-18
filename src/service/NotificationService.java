@@ -1,29 +1,27 @@
 package service;
 
-import model.NotificationRequest;
-import publisher.NotificationPublisher;
+import model.Notification;
+
+import java.util.concurrent.BlockingQueue;
+
+import java.util.concurrent.BlockingQueue;
 
 public class NotificationService {
 
-    private final ValidationService validationService;
-    private final NotificationPublisher publisher;
+    private final BlockingQueue<Notification> queue;
 
-    public NotificationService(ValidationService validationService,
-                               NotificationPublisher publisher) {
+    public NotificationService(
+            BlockingQueue<Notification> queue) {
 
-        this.validationService = validationService;
-        this.publisher = publisher;
+        this.queue = queue;
     }
 
-    public void process(NotificationRequest request) {
+    public void publish(Notification notification)
+            throws InterruptedException {
 
-        if (!validationService.validate(request)) {
-            throw new RuntimeException("Invalid Request");
-        }
+        System.out.println(
+                "Publishing -> " + notification);
 
-        System.out.println(Thread.currentThread().getName()
-                + " -> Validation Successful");
-
-        publisher.publish(request);
+        queue.put(notification);
     }
 }

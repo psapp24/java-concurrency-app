@@ -1,21 +1,28 @@
 package controller;
 
-import model.NotificationRequest;
+import model.Notification;
 import service.NotificationService;
 
 public class NotificationController {
 
     private final NotificationService service;
 
-    public NotificationController(NotificationService service) {
+    public NotificationController(
+            NotificationService service) {
+
         this.service = service;
     }
 
-    public void receive(NotificationRequest request) {
+    public void sendNotification(int customerId,
+                                 String message)
+            throws InterruptedException {
 
-        System.out.println(Thread.currentThread().getName()
-                + " -> Request Received");
+        Notification notification =
+                new Notification(customerId, message);
 
-        service.process(request);
+        service.publish(notification);
+
+        System.out.println(
+                "HTTP Response -> 202 ACCEPTED\n");
     }
 }

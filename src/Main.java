@@ -1,70 +1,50 @@
-import client.ExternalApiClient;
 import consumer.NotificationConsumer;
 import controller.NotificationController;
-import model.NotificationRequest;
-import model.NotificationType;
-import publisher.NotificationPublisher;
-import queue.NotificationQueue;
+import model.Notification;
 import service.NotificationService;
-import service.ValidationService;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args)
+            throws Exception {
 
-        NotificationQueue queue = new NotificationQueue();
-
-        NotificationPublisher publisher =
-                new NotificationPublisher(queue);
-
-        ValidationService validationService =
-                new ValidationService();
+        BlockingQueue<Notification> queue =
+                new ArrayBlockingQueue<>(10);
 
         NotificationService service =
-                new NotificationService(validationService,
-                        publisher);
+                new NotificationService(queue);
 
         NotificationController controller =
                 new NotificationController(service);
 
-        NotificationConsumer consumer =
-                new NotificationConsumer(
-                        queue,
-                        new ExternalApiClient());
-
-        consumer.setName("Consumer-1");
-
-        NotificationRequest request =
-                new NotificationRequest(
-                        1,
-                        "Welcome to Java Concurrency Lab",
-                        NotificationType.EMAIL);
-
-        System.out.println("================================");
-        System.out.println("1:Consumer State : "
-                + consumer.getState());
-        System.out.println("================================");
-
-        controller.receive(request);
-
-        System.out.println("================================");
-        System.out.println("2:Consumer State : "
-                + consumer.getState());
-        System.out.println("================================");
+        Thread consumer =
+                new Thread(
+                        new NotificationConsumer(queue),
+                        "Notification-Consumer");
 
         consumer.start();
 
-        //Thread.sleep(100);
-        System.out.println("================================");
-        System.out.println("3:Consumer State : "
-                + consumer.getState());
-        System.out.println("================================");
+        controller.sendNotification(
+                101,
+                "Welcome");
+
+        controller.sendNotification(
+                102,
+                "OTP Generated");
+
+        controller.sendNotification(
+                103,
+                "Order Placed");
+
+        Thread.sleep(15000);
+
+        queue.put(Notification.POISON_PILL);
 
         consumer.join();
 
-        System.out.println("================================");
-        System.out.println("4:Consumer State : "
-                + consumer.getState());
-        System.out.println("================================");
+        System.out.println("\nApplication Finished");
     }
 }

@@ -1,15 +1,20 @@
 package model;
 
-public class NotificationRequest {
+public class Notification {
 
     private final int id;
     private final String message;
-    private final NotificationType type;
 
-    public NotificationRequest(int id, String message, NotificationType type) {
+    public static final Notification POISON_PILL =
+            new Notification(-1, "POISON_PILL");
+
+    public Notification(int id, String message) {
         this.id = id;
         this.message = message;
-        this.type = type;
+    }
+
+    public int getCustomerId() {
+        return id;
     }
 
     public int getId() {
@@ -20,16 +25,11 @@ public class NotificationRequest {
         return message;
     }
 
-    public NotificationType getType() {
-        return type;
-    }
-
     @Override
     public String toString() {
-        return "NotificationRequest{" +
+        return "Notification{" +
                 "id=" + id +
                 ", message='" + message + '\'' +
-                ", type=" + type +
                 '}';
     }
 }

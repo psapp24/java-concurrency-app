@@ -17,4 +17,12 @@ public class Order {
     public double getAmount() {
         return amount;
     }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", amount=" + amount +
+                '}';
+    }
 }

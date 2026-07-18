@@ -32,7 +32,7 @@ public class OrderSubscriber implements Flow.Subscriber<Order> {
         }
 
         // Ask for the next item only after processing
-        subscription.request(1);
+        subscription.request(2);
     }
 
     @Override

@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        NotificationQueue queue = new NotificationQueue();
+        NotificationQueue queue = new NotificationQueue(5);
 
         Thread p1 = new Thread(new Publisher(queue, "Publisher-1"));
         Thread p2 = new Thread(new Publisher(queue, "Publisher-2"));

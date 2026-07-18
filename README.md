@@ -1,39 +1,197 @@
-Goal
+Part 9 – BlockingQueue
 
-Replace the single shared notification with an actual queue.
+After building everything ourselves, we'll now replace our custom implementation with Java's built-in solution.
 
-Architecture:
+You'll immediately appreciate how much work BlockingQueue saves.
 
+Let's Compare
+Our implementation (Parts 1–8)
 Publisher
       |
       v
-+---------------------+
-|   LinkedList Queue  |
-+---------------------+
+NotificationQueue
+    |
+    |-- LinkedList
+    |-- synchronized
+    |-- wait()
+    |-- notifyAll()
+    |-- capacity check
+    |-- graceful shutdown
+    |
+    v
+Consumer
+
+We wrote around 100+ lines just for queue management.
+
+Java's implementation
+Publisher
+      |
+      v
+BlockingQueue
       |
       v
 Consumer
 
-Here we'll intentionally not use:
+That's it.
 
-❌ synchronized
-❌ wait()
-❌ notify()
-❌ BlockingQueue
+What does BlockingQueue provide?
 
-We'll first observe the problems this naive implementation introduces:
+Everything we implemented manually:
 
-Multiple notifications can now be stored.
-The consumer still has to busy wait when the queue is empty.
-The queue is not thread-safe, so concurrent access can lead to inconsistent behavior.
+✅ Thread safety
 
-This naturally motivates why synchronization and coordination mechanisms are needed.
+✅ Blocking producers
 
-What problems still exist?
+✅ Blocking consumers
 
-This implementation is intentionally incomplete. It still has several issues that we'll solve step by step:
+✅ Capacity management
 
-Busy waiting: When the queue is empty, the consumer wakes up every second to check again, wasting CPU cycles.
-Not thread-safe: LinkedList is not safe for concurrent access. With multiple publishers or consumers, data corruption or inconsistent results can occur.
-No coordination: The consumer has no way to sleep until new data arrives.
-No graceful shutdown: The consumer loops forever until interrupted.
+✅ Memory visibility
+
+✅ Internal locking
+
+✅ Condition signaling
+
+No wait().
+
+No notify().
+
+No synchronized.
+
+Project Structure
+part9-blocking-queue
+│
+├── Notification.java
+├── Publisher.java
+├── Consumer.java
+└── Main.java
+
+
+Wait...
+
+Where did all these go?
+
+synchronized
+
+Gone.
+
+wait();
+
+Gone.
+
+notifyAll();
+
+Gone.
+
+while(queue.isEmpty())
+
+Gone.
+
+while(queue.size()==capacity)
+
+Gone.
+
+Java handles everything internally.
+
+What does put() do?
+
+Conceptually, it's similar to:
+
+while(queueIsFull){
+
+    wait();
+}
+
+queue.add(item);
+
+notifyAll();
+
+You don't see that code because it's inside the JDK.
+
+What does take() do?
+
+Conceptually:
+
+while(queueIsEmpty){
+
+    wait();
+}
+
+Notification n = queue.remove();
+
+notifyAll();
+
+return n;
+
+Again, handled internally.
+
+Internal Comparison
+
+Our code:
+
+public synchronized void publish(Notification notification){
+
+    while(queue.size()==capacity){
+
+        wait();
+    }
+
+    queue.offer(notification);
+
+    notifyAll();
+}
+
+BlockingQueue:
+
+queue.put(notification);
+
+Same behavior.
+
+Much cleaner API.
+
+Which implementation does BlockingQueue use?
+
+Actually...
+
+Not synchronized.
+
+It uses
+
+ReentrantLock
+
+plus
+
+Condition
+
+instead of
+
+wait()
+
+notify()
+
+We'll study those later.
+
+Which BlockingQueue implementations exist?
+Implementation	Bounded?	Notes
+ArrayBlockingQueue	✅ Yes	Fixed-size array, bounded
+LinkedBlockingQueue	✅ Usually	Linked nodes, optionally bounded
+PriorityBlockingQueue	❌ No	Orders by priority instead of FIFO
+DelayQueue	❌ No	Elements become available after a delay
+SynchronousQueue	N/A	No storage; direct handoff between producer and consumer
+
+For our demo, ArrayBlockingQueue is the best fit because it behaves almost exactly like the bounded queue we implemented ourselves.
+
+Interview Questions
+Q1. Why use BlockingQueue instead of LinkedList?
+
+Because it provides built-in thread safety, blocking behavior, and capacity management, eliminating the need to manually write synchronization code.
+
+Q2. What is the difference between put() and offer()?
+put()	offer()
+Waits if the queue is full	Returns immediately (false if full)
+Q3. What is the difference between take() and poll()?
+take()	poll()
+Waits if the queue is empty	Returns immediately (null if empty)
+Q4. Does BlockingQueue use wait() and notify() internally?
+
+Not directly. Modern JDK implementations typically use ReentrantLock with Condition objects (await()/signal()), which provide more flexibility than intrinsic monitors. The coordination concepts are the same as the ones you've implemented manually.

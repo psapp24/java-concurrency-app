@@ -1,20 +1,20 @@
 package service;
 
-import model.Customer;
+import model.Discount;
 
-public class CustomerService {
+public class DiscountService {
 
-    public Customer getCustomer(String customerId) {
-
-        System.out.println(Thread.currentThread().getName()
-                + " -> Calling Customer Service");
-
-        sleep(2000);
+    public Discount getDiscount(String customerId) {
 
         System.out.println(Thread.currentThread().getName()
-                + " -> Customer Service Completed");
+                + " -> Calling Discount Service");
 
-        return new Customer(customerId, "Prakash");
+        sleep(1000);
+
+        System.out.println(Thread.currentThread().getName()
+                + " -> Discount Service Completed");
+
+        return new Discount(10);
     }
 
     private void sleep(long millis) {

@@ -6,9 +6,11 @@ import queue.NotificationQueue;
 public class Consumer implements Runnable {
 
     private final NotificationQueue queue;
+    private final String consumerName;
 
-    public Consumer(NotificationQueue queue) {
+    public Consumer(NotificationQueue queue, String consumerName) {
         this.queue = queue;
+        this.consumerName = consumerName;
     }
 
     @Override
@@ -20,12 +22,18 @@ public class Consumer implements Runnable {
 
             if (notification != null) {
 
-                System.out.println(
-                        Thread.currentThread().getName()
-                                + " consumed "
-                                + notification);
+                System.out.printf("[%s] Consumed <- %s%n",
+                        consumerName,
+                        notification);
+
+                try {
+                    Thread.sleep(800);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }
-        System.out.println("Consumer Finished");
+        System.out.println(consumerName + " Finished");
     }
 }

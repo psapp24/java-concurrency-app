@@ -11,21 +11,21 @@ public class NotificationQueue {
 
     public synchronized void publish(Notification notification) {
         queue.offer(notification);
-        System.out.println(
-                Thread.currentThread().getName()
-                        + " published " + notification);
 
-        notify();
+        System.out.printf("[%s] Published -> %s | Queue Size=%d%n",
+                Thread.currentThread().getName(),
+                notification,
+                queue.size());
+
+        notify();   // Still using notify()
     }
 
     public synchronized Notification consume() {
         while (queue.isEmpty()) {
 
             try {
-
-                System.out.println(
-                        Thread.currentThread().getName()
-                                + " waiting...");
+                System.out.printf("[%s] Waiting...%n",
+                        Thread.currentThread().getName());
 
                 wait();
 
@@ -36,13 +36,5 @@ public class NotificationQueue {
             }
         }
         return queue.poll();
-    }
-
-    public boolean isEmpty() {
-        return queue.isEmpty();
-    }
-
-    public int size() {
-        return queue.size();
     }
 }

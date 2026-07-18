@@ -41,30 +41,29 @@ public class Main {
                         NotificationType.EMAIL);
 
         System.out.println("================================");
-        System.out.println("Consumer State : "
+        System.out.println("1:Consumer State : "
                 + consumer.getState());
         System.out.println("================================");
 
         controller.receive(request);
 
         System.out.println("================================");
-        System.out.println("Consumer State : "
+        System.out.println("2:Consumer State : "
                 + consumer.getState());
         System.out.println("================================");
 
         consumer.start();
 
-        Thread.sleep(100);
-
+        //Thread.sleep(100);
         System.out.println("================================");
-        System.out.println("Consumer State : "
+        System.out.println("3:Consumer State : "
                 + consumer.getState());
         System.out.println("================================");
 
         consumer.join();
 
         System.out.println("================================");
-        System.out.println("Consumer State : "
+        System.out.println("4:Consumer State : "
                 + consumer.getState());
         System.out.println("================================");
     }

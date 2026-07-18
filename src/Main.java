@@ -18,7 +18,7 @@ public class Main {
 
         publisher.join();
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
 
         consumer.interrupt();
 

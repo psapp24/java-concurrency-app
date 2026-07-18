@@ -14,31 +14,18 @@ public class Consumer implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
 
             Notification notification = queue.consume();
 
             if (notification != null) {
 
-                System.out.printf("[%s] Consumed <- %s (Queue Size=%d)%n",
-                        Thread.currentThread().getName(),
-                        notification,
-                        queue.size());
-
-            } else {
-
-                System.out.println("Queue Empty...checking again...");
+                System.out.println(
+                        Thread.currentThread().getName()
+                                + " consumed "
+                                + notification);
             }
-
-            sleep(1000);
         }
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        System.out.println("Consumer Finished");
     }
 }

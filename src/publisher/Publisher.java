@@ -21,22 +21,14 @@ public class Publisher implements Runnable {
 
             queue.publish(notification);
 
-            System.out.printf("[%s] Published -> %s (Queue Size=%d)%n",
-                    Thread.currentThread().getName(),
-                    notification,
-                    queue.size());
-
-            sleep(500);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
 
         System.out.println("Publisher Finished");
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 }

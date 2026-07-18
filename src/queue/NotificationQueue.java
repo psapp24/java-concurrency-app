@@ -1,4 +1,5 @@
 package queue;
+
 import model.Notification;
 
 import java.util.LinkedList;
@@ -8,11 +9,32 @@ public class NotificationQueue {
 
     private final Queue<Notification> queue = new LinkedList<>();
 
-    public void publish(Notification notification) {
+    public synchronized void publish(Notification notification) {
         queue.offer(notification);
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " published " + notification);
+
+        notify();
     }
 
-    public Notification consume() {
+    public synchronized Notification consume() {
+        while (queue.isEmpty()) {
+
+            try {
+
+                System.out.println(
+                        Thread.currentThread().getName()
+                                + " waiting...");
+
+                wait();
+
+            } catch (InterruptedException e) {
+
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
         return queue.poll();
     }
 

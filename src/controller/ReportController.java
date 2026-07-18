@@ -12,8 +12,6 @@ public class ReportController {
 
     public void generateReport(List<Order> orders) {
 
-        System.out.println("\nGenerating Sales Report...\n");
-
         long start = System.currentTimeMillis();
 
         double total =
@@ -21,9 +19,7 @@ public class ReportController {
 
         long end = System.currentTimeMillis();
 
-        System.out.println("\n==============================");
-        System.out.println("Total Sales : " + total);
+        System.out.println("\nTotal Sales : " + total);
         System.out.println("Time Taken  : " + (end - start) + " ms");
-        System.out.println("==============================");
     }
 }

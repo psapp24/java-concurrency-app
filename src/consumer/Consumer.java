@@ -16,24 +16,27 @@ public class Consumer implements Runnable {
     @Override
     public void run() {
 
-        while (!Thread.currentThread().isInterrupted()) {
+        while (true) {
 
             Notification notification = queue.consume();
 
-            if (notification != null) {
+            if (notification == Notification.POISON_PILL) {
 
-                System.out.printf("[%s] Consumed <- %s%n",
-                        consumerName,
-                        notification);
+                System.out.println(
+                        Thread.currentThread().getName()
+                                + " received Poison Pill");
 
-                try {
-                    Thread.sleep(800);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                break;
             }
+
+            System.out.println(
+                    Thread.currentThread().getName()
+                            + " processed "
+                            + notification);
         }
-        System.out.println(consumerName + " Finished");
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " Finished");
     }
 }

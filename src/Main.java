@@ -30,10 +30,6 @@ public class Main {
 
         Thread.sleep(5000);
 
-        c1.interrupt();
-        c2.interrupt();
-        c3.interrupt();
-
         c1.join();
         c2.join();
         c3.join();

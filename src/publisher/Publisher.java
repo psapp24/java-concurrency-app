@@ -18,20 +18,12 @@ public class Publisher implements Runnable {
 
         for (int i = 1; i <= 10; i++) {
 
-            Notification notification = new Notification(
-                    i,
-                    publisherName + " -> Message-" + i
-            );
-
-            queue.publish(notification);
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
+            queue.publish(
+                    new Notification(i,
+                            publisherName + "-Message-" + i));
         }
+
+        queue.publish(Notification.POISON_PILL);
 
         System.out.println(publisherName + " Finished");
     }

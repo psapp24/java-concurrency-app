@@ -17,7 +17,7 @@ public class NotificationQueue {
                 notification,
                 queue.size());
 
-        notify();   // Still using notify()
+        notifyAll();
     }
 
     public synchronized Notification consume() {

@@ -1,28 +1,24 @@
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
 
-    public static void main(String[] args)
-            throws Exception {
+    public static void main(String[] args) {
 
         ExecutorService executor =
-                Executors.newFixedThreadPool(2);
+                Executors.newFixedThreadPool(3);
 
-        Callable<Integer> task = () -> {
+        executor.submit(() ->
+                System.out.println(
+                        Thread.currentThread().getName()));
 
-            Thread.sleep(3000);
+        executor.submit(() ->
+                System.out.println(
+                        Thread.currentThread().getName()));
 
-            return 100;
-        };
-
-        Future<Integer> future =
-                executor.submit(task);
-
-        System.out.println("Task Submitted");
-
-        Integer result = future.get();
-
-        System.out.println(result);
+        executor.submit(() ->
+                System.out.println(
+                        Thread.currentThread().getName()));
 
         executor.shutdown();
     }

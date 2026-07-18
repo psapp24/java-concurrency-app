@@ -1,39 +1,135 @@
-Goal
+Execution Flow
 
-Replace the single shared notification with an actual queue.
+Initially:
 
-Architecture:
+Queue Empty
 
-Publisher
-      |
-      v
-+---------------------+
-|   LinkedList Queue  |
-+---------------------+
-      |
-      v
+↓
+
+Consumer enters consume()
+
+↓
+
+Queue is empty
+
+↓
+
+Consumer calls wait()
+
+↓
+
+Consumer goes to WAITING state
+
+Publisher starts:
+
+Publisher publishes Message-1
+
+↓
+
+notify()
+
+↓
+
+Consumer wakes
+
+↓
+
+Consumes Message-1
+
+↓
+
+Queue Empty again
+
+↓
+
+wait()
+
+This repeats.
+
+Thread States
 Consumer
 
-Here we'll intentionally not use:
+RUNNABLE
 
-❌ synchronized
-❌ wait()
-❌ notify()
-❌ BlockingQueue
+↓
 
-We'll first observe the problems this naive implementation introduces:
+wait()
 
-Multiple notifications can now be stored.
-The consumer still has to busy wait when the queue is empty.
-The queue is not thread-safe, so concurrent access can lead to inconsistent behavior.
+↓
 
-This naturally motivates why synchronization and coordination mechanisms are needed.
+WAITING
 
-What problems still exist?
+↓
 
-This implementation is intentionally incomplete. It still has several issues that we'll solve step by step:
+notify()
 
-Busy waiting: When the queue is empty, the consumer wakes up every second to check again, wasting CPU cycles.
-Not thread-safe: LinkedList is not safe for concurrent access. With multiple publishers or consumers, data corruption or inconsistent results can occur.
-No coordination: The consumer has no way to sleep until new data arrives.
-No graceful shutdown: The consumer loops forever until interrupted.
+↓
+
+BLOCKED (waiting to reacquire monitor)
+
+↓
+
+RUNNABLE
+
+↓
+
+Consumes message
+
+↓
+
+wait()
+
+↓
+
+WAITING
+
+This sequence is very important for interviews.
+
+What did we improve?
+Part 2
+Queue Empty
+
+↓
+
+Sleep 1 second
+
+↓
+
+Wake
+
+↓
+
+Check again
+Part 3
+Queue Empty
+
+↓
+
+wait()
+
+↓
+
+Sleep forever
+
+↓
+
+notify()
+
+↓
+
+Wake instantly
+
+This is much more efficient.
+
+Interview Questions Covered
+
+By the end of Part 3, you'll be able to answer:
+
+Why must wait() be inside a synchronized block or synchronized method?
+Why must notify() also hold the same monitor?
+Why use while instead of if around wait()?
+What object owns the monitor?
+What happens to the monitor when wait() is called?
+Difference between sleep() and wait()
+Difference between WAITING and BLOCKED thread states
+Why is polling considered inefficient?

@@ -1,20 +1,19 @@
-import controller.OrderController;
+import controller.ReportController;
 import model.Order;
+import util.OrderGenerator;
+
+import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        Order order =
-                new Order(
-                        "O101",
-                        "C101",
-                        "P101"
-                );
+        List<Order> orders =
+                OrderGenerator.generateOrders(10000);
 
-        OrderController controller =
-                new OrderController();
+        ReportController controller =
+                new ReportController();
 
-        controller.placeOrder(order);
+        controller.generateReport(orders);
     }
 }

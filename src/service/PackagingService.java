@@ -2,22 +2,24 @@ package service;
 
 import model.Order;
 
-public class DiscountService {
+public class PackagingService {
 
-    public void calculateDiscount(Order order) {
+    public void pack(Order order) {
 
         try {
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Calculating Discount");
+                    + " Packaging Started");
 
-            Thread.sleep(3000);
+            Thread.sleep(1500);
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Discount Calculated");
+                    + " Packaging Completed");
 
         } catch (InterruptedException e) {
+
             Thread.currentThread().interrupt();
+
         }
 
     }

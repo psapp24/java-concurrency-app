@@ -2,22 +2,24 @@ package service;
 
 import model.Order;
 
-public class FraudService {
+public class PaymentService {
 
-    public void verifyFraud(Order order) {
+    public void processPayment(Order order) {
 
         try {
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Fraud Check Started");
+                    + " Processing Payment");
 
-            Thread.sleep(1500);
+            Thread.sleep(2500);
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Fraud Check Passed");
+                    + " Payment Completed");
 
         } catch (InterruptedException e) {
+
             Thread.currentThread().interrupt();
+
         }
 
     }

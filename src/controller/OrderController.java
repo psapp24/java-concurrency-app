@@ -10,19 +10,11 @@ public class OrderController {
 
     public void placeOrder(Order order) {
 
-        System.out.println(
-                Thread.currentThread().getName()
-                        + " -> Request Received"
-        );
+        System.out.println("Received Order : "
+                + order.getOrderId());
 
-        Order processedOrder =
-                orderService.process(order);
+        orderService.processOrder(order);
 
-        System.out.println();
-
-        System.out.println(
-                "Final Order = "
-                        + processedOrder
-        );
     }
+
 }

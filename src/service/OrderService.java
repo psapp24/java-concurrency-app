@@ -1,167 +1,80 @@
 package service;
 
-import model.Customer;
-import model.Discount;
 import model.Order;
-import model.Payment;
-import model.Product;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class OrderService {
 
-    private final CustomerService customerService =
-            new CustomerService();
-
-    private final ProductService productService =
-            new ProductService();
-
-    private final DiscountService discountService =
-            new DiscountService();
-
-    private final PaymentService paymentService =
-            new PaymentService();
+    private final InventoryService inventoryService = new InventoryService();
+    private final CustomerService customerService = new CustomerService();
+    private final DiscountService discountService = new DiscountService();
+    private final FraudService fraudService = new FraudService();
+    private final RabbitPublisher rabbitPublisher = new RabbitPublisher();
 
     private final ExecutorService executor =
             Executors.newFixedThreadPool(4);
 
-    public Order processOld(Order order) {
+    public void processOrder(Order order) {
 
-        CompletableFuture<Customer> customerFuture =
-                CompletableFuture
-                        .supplyAsync(
-                                () -> customerService.getCustomer(
-                                        order.getCustomerId()),
-                                executor
-                        )
-                        .thenApply(customer -> {
+        CountDownLatch latch = new CountDownLatch(4);
 
-                            System.out.println(
-                                    Thread.currentThread().getName()
-                                            + " -> thenApply() Executing");
+        System.out.println("Starting Validation...\n");
 
-                            return new Customer(
-                                    customer.getCustomerId(),
-                                    customer.getName().toUpperCase()
-                            );
-                        });
+        executor.submit(() -> {
 
-        Customer customer = customerFuture.join();
+            inventoryService.checkInventory(order);
 
-        order.setCustomer(customer);
+            latch.countDown();
 
-        return order;
-    }
+            System.out.println("Latch Count : " + latch.getCount());
 
-    public Order process(Order order) {
+        });
 
-        CompletableFuture<Payment> paymentFuture =
-                CompletableFuture
+        executor.submit(() -> {
 
-                        .supplyAsync(
-                                () -> productService.getProduct(
-                                        order.getProductId()),
-                                executor)
+            customerService.validateCustomer(order);
 
-                        .thenCompose(product -> {
+            latch.countDown();
 
-                            System.out.println(
-                                    Thread.currentThread().getName()
-                                            + " -> thenCompose()");
+            System.out.println("Latch Count : " + latch.getCount());
 
-                            order.setProduct(product);
+        });
 
-                            return CompletableFuture.supplyAsync(
-                                    () -> paymentService.makePayment(
-                                            product.getPrice()),
-                                    executor);
+        executor.submit(() -> {
 
-                        });
+            discountService.calculateDiscount(order);
 
-        Payment payment = paymentFuture.join();
+            latch.countDown();
 
-        order.setPayment(payment);
+            System.out.println("Latch Count : " + latch.getCount());
 
-        return order;
-    }
+        });
 
-    public Order processUsingThenCombine(Order order) {
+        executor.submit(() -> {
 
-        CompletableFuture<Product> productFuture =
-                CompletableFuture.supplyAsync(
-                        () -> productService.getProduct(
-                                order.getProductId()),
-                        executor);
+            fraudService.verifyFraud(order);
 
-        CompletableFuture<Discount> discountFuture =
-                CompletableFuture.supplyAsync(
-                        () -> discountService.getDiscount(
-                                order.getCustomerId()),
-                        executor);
+            latch.countDown();
 
-        CompletableFuture<Double> finalPriceFuture =
-                productFuture.thenCombine(
-                        discountFuture,
+            System.out.println("Latch Count : " + latch.getCount());
 
-                        (product, discount) -> {
+        });
 
-                            System.out.println(
-                                    Thread.currentThread().getName()
-                                            + " -> thenCombine()");
+        try {
 
-                            order.setProduct(product);
-                            order.setDiscount(discount);
+            System.out.println("\nWaiting for all validations...\n");
 
-                            return product.getPrice()
-                                    - (product.getPrice()
-                                    * discount.getPercentage() / 100);
-                        });
+            latch.await();
 
-        Double finalPrice = finalPriceFuture.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
-        order.setFinalPrice(finalPrice);
+        rabbitPublisher.publish(order);
 
-        return order;
-    }
-
-    public Order processUsingExceptionally(Order order) {
-
-        CompletableFuture<Payment> paymentFuture =
-
-                CompletableFuture
-
-                        .supplyAsync(
-
-                                () -> paymentService.makePayment(
-
-                                        1000),
-
-                                executor)
-
-                        .exceptionally(ex -> {
-
-                            System.out.println(
-
-                                    Thread.currentThread().getName()
-
-                                            + " -> Recovering from : "
-
-                                            + ex.getMessage());
-
-                            return new Payment(
-
-                                    false,
-
-                                    "PAYMENT_FAILED");
-
-                        });
-
-        Payment payment = paymentFuture.join();
-
-        order.setPayment(payment);
-
-        return order;
+        executor.shutdown();
     }
 }

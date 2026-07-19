@@ -1,27 +1,25 @@
 package service;
 
-import model.Customer;
+import model.Order;
 
 public class CustomerService {
 
-    public Customer getCustomer(String customerId) {
+    public void validateCustomer(Order order) {
 
-        System.out.println(Thread.currentThread().getName()
-                + " -> Calling Customer Service");
-
-        sleep(2000);
-
-        System.out.println(Thread.currentThread().getName()
-                + " -> Customer Service Completed");
-
-        return new Customer(customerId, "Prakash");
-    }
-
-    private void sleep(long millis) {
         try {
-            Thread.sleep(millis);
+
+            System.out.println(Thread.currentThread().getName()
+                    + " -> Validating Customer");
+
+            Thread.sleep(1000);
+
+            System.out.println(Thread.currentThread().getName()
+                    + " -> Customer Verified");
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
     }
+
 }

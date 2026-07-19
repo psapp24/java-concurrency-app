@@ -2,19 +2,19 @@ package service;
 
 import model.Order;
 
-public class DiscountService {
+public class FraudService {
 
-    public void calculateDiscount(Order order) {
+    public void verifyFraud(Order order) {
 
         try {
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Calculating Discount");
+                    + " -> Fraud Check Started");
 
-            Thread.sleep(3000);
+            Thread.sleep(1500);
 
             System.out.println(Thread.currentThread().getName()
-                    + " -> Discount Calculated");
+                    + " -> Fraud Check Passed");
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
